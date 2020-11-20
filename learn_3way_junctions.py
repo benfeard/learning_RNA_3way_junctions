@@ -9,15 +9,29 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sklearn as sk
 from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+import sys
 
 rna_3way = pd.read_csv('rna_junctions.csv')
-#print(rna_3way.head())
+print(rna_3way.head())
 
 # create a mapping from rna label to junction type
 lookup_junction_type = dict(zip(rna_3way.rna_label.unique(), rna_3way.junction_type.unique()))
-#print(lookup_junction_type)
+print(lookup_junction_type)
+
+# dealing with RNA features being sequences of nucleic acids
+seq_text = rna_3way['stem_a']#[['stem_a', 'junction_a', 'stem_b', 'junction_b', 'stem_c', 'junction_c']]
+vectorizer = CountVectorizer()
+vectorizer.fit(seq_text)
+vector = vectorizer.transform(seq_text)
+
+# look at results
+print(vector.toarray())
+print(vectorizer.vocabulary_)
+sys.exit()
 
 # split dataset
+# blue = A, green = B, red = C
 X = rna_3way[['stem_a', 'junction_a', 'stem_b', 'junction_b', 'stem_c', 'junction_c']]
 y = rna_3way['rna_label']
 
