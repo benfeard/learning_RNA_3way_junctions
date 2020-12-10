@@ -16,11 +16,11 @@ from sklearn.preprocessing import OneHotEncoder
 import sys
 
 rna_3way = pd.read_csv('rna_junctions.csv')
-print(rna_3way.head())
+#print(rna_3way.head())
 
 # create a mapping from rna label to junction type
 lookup_junction_type = dict(zip(rna_3way.rna_label.unique(), rna_3way.junction_type.unique()))
-print(lookup_junction_type)
+#print(lookup_junction_type)
 
 # dealing with RNA features being sequences of nucleic acids
 seq_text = rna_3way['stem_a']#[['stem_a', 'junction_a', 'stem_b', 'junction_b', 'stem_c', 'junction_c']]
@@ -82,16 +82,32 @@ for column in columns:
     #rna_3way[column] = rna_3way[column].apply(one_hot_encoder)
     rna_3way[column] = rna_3way[column].apply(padarray64)
  
-
 ## new problem is that none of the sequences are the same length
+
+rna_3way['final'] = pd.concat(rna_3way['stem_a'], rna_3way['junction_a'])
+print(rna_3way['final'].shape)
+print(rna_3way['final'])
+sys.exit()
+# make a 1-dimensional view of arr
+#arr = np.array(rna_3way[['stem_a', 'junction_a', 'stem_b', 'junction_b', 'stem_c', 'junction_c']])
+#print(arr.shape)
+
+'''
+i'll need to pad each sequence with Z's
+then add them together rna_3way[final]  = 'stem_a" + stem_b + ...
+then encode them
+'''
 
 # split dataset
 # blue = A, green = B, red = C
-X = rna_3way[['stem_a', 'junction_a', 'stem_b', 'junction_b', 'stem_c', 'junction_c']]
+X = rna_3way['final']
 y = rna_3way['rna_label']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
 
+for row in X_train:
+    print(len(row))
+sys.exit()
 # naive Bayes classifer
 from sklearn.naive_bayes import MultinomialNB
 classifier = MultinomialNB().fit(X_train, y_train)
