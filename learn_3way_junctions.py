@@ -36,6 +36,12 @@ print(vectorizer.vocabulary_)
 def padarray64(my_array):
     t = 64 - len(my_array)
     return np.pad(my_array, pad_width=(0, t), mode='constant')
+    
+# Pad each sequence with Z so all the stems and junctions are 64 char
+def padseq64(my_seq):
+    x = my_seq.ljust(64, "Z")
+    #print(len(x))
+    return x
 
 
 # Ordinal encoding of RNA sequence data
@@ -64,7 +70,7 @@ def ordinal_encoder(my_seq):
 # Optional one-hot encoding for future deep learning method
 # "ACGUZ" --> [1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1], [0,0,0,0]
 def one_hot_encoder(my_seq):
-    my_seq = np.array(list(my_seq))
+    my_seq = np.array(list(my_seq), dtype=np.float)
     integer_encoded = label_encoder.transform(my_seq)
     
     onehot_encoder = OneHotEncoder(sparse=False, dtype=int, categories=[range(5)])
@@ -78,16 +84,32 @@ def one_hot_encoder(my_seq):
 columns = [column for column in rna_3way][3:]
 
 for column in columns:
-    rna_3way[column] = rna_3way[column].apply(ordinal_encoder)
-    #rna_3way[column] = rna_3way[column].apply(one_hot_encoder)
-    rna_3way[column] = rna_3way[column].apply(padarray64)
+    rna_3way[column] = rna_3way[column].apply(padseq64)    
+    
+rna_3way['final'] = (
+                        rna_3way['stem_a'] + rna_3way['junction_a'] + 
+                        rna_3way['stem_b'] + rna_3way['junction_b'] + 
+                        rna_3way['stem_c'] + rna_3way['junction_c']
+                    )
+                    
+rna_3way['final'] = rna_3way['final'].apply(ordinal_encoder)
+#for column in columns:
+    #rna_3way[column] = rna_3way[column].apply(ordinal_encoder)
+    #rna_3way[column] = rna_3way[column].apply(one_hot_encoder) #don't use this one
+    
+    # make vectors the same length
+    #rna_3way[column] = rna_3way[column].apply(padarray64)
  
 ## new problem is that none of the sequences are the same length
 
-rna_3way['final'] = pd.concat(rna_3way['stem_a'], rna_3way['junction_a'])
-print(rna_3way['final'].shape)
-print(rna_3way['final'])
-sys.exit()
+#rna_3way['final'] = pd.concat(rna_3way['stem_a'], rna_3way['junction_a'])
+#print(rna_3way['final'].shape)
+#print(rna_3way['final'])
+
+my_matrix = pd.DataFrame(rna_3way['final'].values.tolist())
+print(my_matrix.shape)
+
+
 # make a 1-dimensional view of arr
 #arr = np.array(rna_3way[['stem_a', 'junction_a', 'stem_b', 'junction_b', 'stem_c', 'junction_c']])
 #print(arr.shape)
@@ -100,17 +122,45 @@ then encode them
 
 # split dataset
 # blue = A, green = B, red = C
-X = rna_3way['final']
+X = my_matrix #rna_3way['final']
 y = rna_3way['rna_label']
+print(X.shape)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+ 
+# feature scaling for training data
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+scaler.fit(X_train)
 
-for row in X_train:
-    print(len(row))
-sys.exit()
+X_train = scaler.transform(X_train)
+X_test = scaler.transform(X_test)
+
+# neural network   
+from sklearn.neural_network import MLPClassifier
+mlp = MLPClassifier(hidden_layer_sizes=(10, 10, 10), max_iter=1000)
+mlp.fit(X_train, y_train)
+
+print("i trained the neural network")
+
+predictions = mlp.predict(X_test)
+print(predictions)
+
+# evaluate the algorithm
+from sklearn.metrics import classification_report, confusion_matrix
+print(confusion_matrix(y_test,predictions))
+print(classification_report(y_test,predictions))
+
 # naive Bayes classifer
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
 from sklearn.naive_bayes import MultinomialNB
 classifier = MultinomialNB().fit(X_train, y_train)
 
 classifier.score(X_test, y_test)
 predicted = classifier.predict(X_test)
+print(predicted)
+
+print("i trained the multinomial network")
+
+
