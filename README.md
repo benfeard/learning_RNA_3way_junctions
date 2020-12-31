@@ -25,7 +25,7 @@ Running the code with the dataset, both machine learning algorithms performed po
 - More testing would be needed to know if the ordinal encoding unintentially biases particular nucleotides due to them having unequal numerical values. This could be addressed by using a one-hot encoding solution such as "ACGUZ" --> [1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1], [0,0,0,0]
 - The lack of specific base pair information to distinguish stems (as opposed to the nucleotide sequence of stems in order) could be limiting the secondary structure information. Ex: Alu SRP[1] has two helices paired together and this is not capture in the dataset. However, including base pair information would require new decisions such as to use only canonical base pairing or beyond and would need to address how to capture that information as numerical values and not just patterns used in Dot-Bracket Notation ((((....))))
 
-![Alu SRP from Lescoute et al.](https://github.com/benfeard/learning_RNA_3way_junctions/blob/main/Figures/Figure%202.png "Alu SRP from Lescoute et al.")
+![Alu SRP from Lescoute et al.](https://github.com/benfeard/learning_RNA_3way_junctions/blob/main/Figures/Figure%202%20v2.png "Alu SRP from Lescoute et al.")
 **Alu SRP from Lescoute et al.[1]**
 **Connected stems highlighted by yellow circle.**
 
