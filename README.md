@@ -5,6 +5,7 @@ The goal of this project is to write a Python script that uses machine learning 
 I want to use an RNA sequence and the base pair information to focus on a fundamental feature of RNA tertiary structures. Junctions play a large roll in defining tertiary RNA structure. Beyond primary (nucleotide sequence) and secondary (base pairing and helices) structures, the tertiary structure can help us understand how RNA can physical interact with its environment. The simplest junction contains two stems (helices) but lacks the interesting three dimensional alignment questions. A junction containing three stems falls into distinct structural conformatinos that can provide useful, functional information about an RNA. I will breakdown a three-way junction into features for machine learning that consist of the sequence of stems A, B, and C and the sequence of the junctions connecting the stems a, b, and c.
 
 ![RNA 3-Way Junctions described in Lescoute et al.](https://github.com/benfeard/learning_RNA_3way_junctions/blob/main/Figures/Figure%201.png "RNA 3-Way Junctions described in Lescoute et al.")
+**RNA 3-Way Junctions described in Lescoute et al.[1]**
 
 I generated a training set by hand as most online databases aren't created to specifically provide information on specific features such as RNA 3-way junctions. The training set will be small so this will be an exercise in how to use machine learning algorithms to predict RNA tertiary orientation rather than to solve the problem outright.
 
@@ -23,7 +24,10 @@ Running the code with the dataset, both machine learning algorithms performed po
 - The Neural Network layers and hidden units could be tweaked and optimized to increase accuracy.
 - More testing would be needed to know if the ordinal encoding unintentially biases particular nucleotides due to them having unequal numerical values. This could be addressed by using a one-hot encoding solution such as "ACGUZ" --> [1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1], [0,0,0,0]
 - The lack of specific base pair information to distinguish stems (as opposed to the nucleotide sequence of stems in order) could be limiting the secondary structure information. Ex: Alu SRP[1] has two helices paired together and this is not capture in the dataset. However, including base pair information would require new decisions such as to use only canonical base pairing or beyond and would need to address how to capture that information as numerical values and not just patterns used in Dot-Bracket Notation ((((....))))
+
 ![Alu SRP from Lescoute et al.](https://github.com/benfeard/learning_RNA_3way_junctions/blob/main/Figures/Figure%202.png "Alu SRP from Lescoute et al.")
+**Alu SRP from Lescoute et al.[1]**
+**Connected stems highlighted by yellow circle.**
 
 ###References:
 1. Lescoute A, Westhof E. Topology of three-way junctions in folded RNAs. RNA. 2006;12(1):83-93. doi:10.1261/rna.2208106
