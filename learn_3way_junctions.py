@@ -15,15 +15,19 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 import sys
 
+# import database
 rna_3way = pd.read_csv('rna_junctions.csv')
-#print(rna_3way.head())
 
 # create a mapping from rna label to junction type
 lookup_junction_type = dict(zip(rna_3way.rna_label.unique(), rna_3way.junction_type.unique()))
-#print(lookup_junction_type)
+
+'''
+I had considered looking at the pieces of the RNA, each helical stem and the connecting junctions
+as words and treating the learning problem as predicting likely sequences for each type of
+helical orientation.
 
 # dealing with RNA features being sequences of nucleic acids
-seq_text = rna_3way['stem_a']#[['stem_a', 'junction_a', 'stem_b', 'junction_b', 'stem_c', 'junction_c']]
+seq_text = rna_3way[['stem_a', 'junction_a', 'stem_b', 'junction_b', 'stem_c', 'junction_c']]
 vectorizer = CountVectorizer()
 vectorizer.fit(seq_text)
 vector = vectorizer.transform(seq_text)
@@ -31,26 +35,21 @@ vector = vectorizer.transform(seq_text)
 # look at results
 print(vector.toarray())
 print(vectorizer.vocabulary_)
+'''
 
-# I need to make all my arrays the same length for classification
+# function to make all my arrays the same length for classification
 def padarray64(my_array):
     t = 64 - len(my_array)
     return np.pad(my_array, pad_width=(0, t), mode='constant')
     
-# Pad each sequence with Z so all the stems and junctions are 64 char
+# pad each sequence with Z so all the stems and junctions are 64 characters
 def padseq64(my_seq):
     x = my_seq.ljust(64, "Z")
-    #print(len(x))
     return x
 
-
-# Ordinal encoding of RNA sequence data
-# "GUCA" --> [0.25, 0.5, 0.75, 1.0] 
-# although I hope this doesn't weight actual nucleotides
-# Let's make zero lenth junctions = 0
+# Ordinal encoding of RNA sequence data "GUCA" --> [0.25, 0.5, 0.75, 1.0] 
 label_encoder = LabelEncoder()
 label_encoder.fit(np.array(['G', 'U', 'C', 'A', 'Z']))
-
 
 def ordinal_encoder(my_seq):
     my_seq = np.array(list(my_seq))
@@ -66,7 +65,6 @@ def ordinal_encoder(my_seq):
     
     return float_encoded
 
-
 # Optional one-hot encoding for future deep learning method
 # "ACGUZ" --> [1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1], [0,0,0,0]
 def one_hot_encoder(my_seq):
@@ -80,9 +78,10 @@ def one_hot_encoder(my_seq):
     
     return onehot_encoded
      
-# non label columns
+# non-label columns aka sequences
 columns = [column for column in rna_3way][3:]
 
+# make the sequences for stems and junctions each length and join them in order
 for column in columns:
     rna_3way[column] = rna_3way[column].apply(padseq64)    
     
@@ -91,40 +90,17 @@ rna_3way['final'] = (
                         rna_3way['stem_b'] + rna_3way['junction_b'] + 
                         rna_3way['stem_c'] + rna_3way['junction_c']
                     )
-                    
+  
+# convert letters to numbers                   
 rna_3way['final'] = rna_3way['final'].apply(ordinal_encoder)
-#for column in columns:
-    #rna_3way[column] = rna_3way[column].apply(ordinal_encoder)
-    #rna_3way[column] = rna_3way[column].apply(one_hot_encoder) #don't use this one
-    
-    # make vectors the same length
-    #rna_3way[column] = rna_3way[column].apply(padarray64)
- 
-## new problem is that none of the sequences are the same length
-
-#rna_3way['final'] = pd.concat(rna_3way['stem_a'], rna_3way['junction_a'])
-#print(rna_3way['final'].shape)
-#print(rna_3way['final'])
 
 my_matrix = pd.DataFrame(rna_3way['final'].values.tolist())
-print(my_matrix.shape)
+##print(my_matrix.shape)
 
-
-# make a 1-dimensional view of arr
-#arr = np.array(rna_3way[['stem_a', 'junction_a', 'stem_b', 'junction_b', 'stem_c', 'junction_c']])
-#print(arr.shape)
-
-'''
-i'll need to pad each sequence with Z's
-then add them together rna_3way[final]  = 'stem_a" + stem_b + ...
-then encode them
-'''
 
 # split dataset
-# blue = A, green = B, red = C
-X = my_matrix #rna_3way['final']
+X = my_matrix 
 y = rna_3way['rna_label']
-print(X.shape)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
  
@@ -136,18 +112,17 @@ scaler.fit(X_train)
 X_train = scaler.transform(X_train)
 X_test = scaler.transform(X_test)
 
-# neural network   
+# neural network approach 
 from sklearn.neural_network import MLPClassifier
 mlp = MLPClassifier(hidden_layer_sizes=(10, 10, 10), max_iter=1000)
 mlp.fit(X_train, y_train)
 
-print("i trained the neural network")
-
 predictions = mlp.predict(X_test)
-print(predictions)
+##print(predictions)
 
 # evaluate the algorithm
 from sklearn.metrics import classification_report, confusion_matrix
+print("Neural Network results:")
 print(confusion_matrix(y_test,predictions))
 print(classification_report(y_test,predictions))
 
@@ -159,8 +134,8 @@ classifier = MultinomialNB().fit(X_train, y_train)
 
 classifier.score(X_test, y_test)
 predicted = classifier.predict(X_test)
-print(predicted)
+##print(predicted)
 
-print("i trained the multinomial network")
-
-
+print("Native Bayes results:")
+print(confusion_matrix(y_test,predicted))
+print(classification_report(y_test,predicted))
