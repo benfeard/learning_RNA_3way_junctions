@@ -114,7 +114,8 @@ X_test = scaler.transform(X_test)
 
 # neural network approach 
 from sklearn.neural_network import MLPClassifier
-mlp = MLPClassifier(hidden_layer_sizes=(10, 10, 10), max_iter=1000)
+#mlp = MLPClassifier(hidden_layer_sizes=(10, 10, 10), max_iter=1000)
+mlp = MLPClassifier(hidden_layer_sizes=(25, 25, 25), max_iter=1000)
 mlp.fit(X_train, y_train)
 
 predictions = mlp.predict(X_test)
